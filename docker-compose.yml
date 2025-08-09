@@ -22,6 +22,8 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
+    ports:
+      - "8209:8000"
     env_file:
       - .env
     depends_on:
