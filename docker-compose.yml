@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # FastAPI主应用
+  web:
+    build: .
+    container_name: multimedia_review
+    ports:
+      - "8208:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  # Celery工作器
+  worker:
+    build: .
+    container_name: review_worker
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  # Celery监控（可选）
+  flower:
+    build: .
+    container_name: review_flower
+    command: celery -A app.workers.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    depends_on:
+      - worker
+    restart: unless-stopped
